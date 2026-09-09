@@ -1,30 +1,21 @@
-import { test, expect, type Page, type TestInfo } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 
-const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
+const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
-async function scan(page: Page, testInfo: TestInfo) {
-  const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+test('home page has no a11y issues', async ({ page }) => {
+  await page.goto('/');
 
-  await testInfo.attach('axe-violations.json', {
-    body: JSON.stringify(violations, null, 2),
-    contentType: 'application/json',
-  });
+  const { violations } = await new AxeBuilder({ page }).withTags(WCAG).analyze();
 
-  // Assert on a readable summary; full node detail lives in the attachment.
-  return violations.map(
-    (v) => `${v.id} (${v.impact ?? 'unknown'}): ${v.help} — ${v.nodes.length} node(s)`,
-  );
-}
+  expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+});
 
-test.describe('home page', () => {
-  // Tailwind `dark:` variants mean contrast differs per scheme, so check both.
-  for (const colorScheme of ['light', 'dark'] as const) {
-    test(`has no WCAG A/AA violations in ${colorScheme} mode`, async ({ page }, testInfo) => {
-      await page.emulateMedia({ colorScheme });
-      await page.goto('/');
+test('home page has no a11y issues in dark mode', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto('/');
 
-      expect(await scan(page, testInfo)).toEqual([]);
-    });
-  }
+  const { violations } = await new AxeBuilder({ page }).withTags(WCAG).analyze();
+
+  expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
 });
