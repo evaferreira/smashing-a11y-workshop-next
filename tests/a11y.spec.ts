@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 
-const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
+const WCAG = ['EN-301-549'];
 
 test('home page has no a11y issues', async ({ page }) => {
   await page.goto('/');
